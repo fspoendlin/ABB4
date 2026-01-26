@@ -1,0 +1,6 @@
+defaults:
+  - data
+  - interpolant
+  - model
+  - experiment
+  - _self_

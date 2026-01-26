@@ -1,0 +1,44 @@
+experiment:                                 # ModelRun, FlowModule classes
+  num_devices: 4 # 2                            # max number of GPUs to use, if available
+  warm_start: /data/scratch/spoendli/IgFM/ckpt/ab_folding/fwd_fold_mAbs_12-26-01-28/2024-12-26_01-28-57/
+  test_number: 0
+
+  checkpointer:
+    dirpath: ckpt/ab_folding/fwd_fold_mAbs_12-26-01-28/2024-12-26_01-28-57/
+
+  validation:
+    save_traj: False
+    save_int_traj: False
+
+  testing:                                  # FlowModule class
+    ckpt_name: best-epoch=1494.ckpt
+    sample_validation: True                 # validation by sampling entire trajectory
+
+
+data:
+  dataset:                                  # {Train, Length, Fasta, Pdb}Dataset, Distributed{Train, Inference}BatchSampler classes
+    train_val_test_pdbs:                    # common filters for train/val/test set
+      csv_path: /vols/opig/users/spoendli/conformation_prediction/IgFM/metadata/ABB3_combined_metadata.csv
+    test:
+      gen_extent: ${data.gen_extent}
+      gen_regions: ${data.gen_regions}
+      
+      trainlike: True                      # run train-like loss computation at test time
+      trainlike_sampler:                   # DistributedTrainBatchSampler class
+        batch_size: 10
+        shuffle: False
+        num_struc_samples: null
+        drop_last: False
+      
+      inferencelike: False                  # run inference-like de novo generation and compute metrics at test time
+      inferencelike_sampler:               # DistributedInferenceBatchSampler class
+        batch_size: 1                      # choose as high as GPU RAM allows
+        shuffle: False
+
+interpolant:
+  sampling:
+    num_timesteps: 100
+  rots:
+    sample_schedule: linear
+  trans:
+    sample_schedule: linear

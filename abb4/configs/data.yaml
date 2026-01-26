@@ -1,0 +1,145 @@
+data:
+
+  task: fwd_fold                            # in {'cogen', 'fwd_fold', 'inv_fold'}
+  gen_extent: full                          # in {'full', 'partial'}  NOTE: 'partial' is not currently supported, influences diffuse mask
+  gen_regions:                              # regions to generate (only relevant if gen_extent == 'partial')
+                                            # either {H:[...], L:[...]} or 'mask' (reads diffuse_masks from a file pdb_dir/pdb_masks.csv)
+    - H: ['fw1', 'cdr1', 'fw2', 'cdr2', 'fw3', 'cdr3', 'fw4'] 
+    - L: ['fw1', 'cdr1', 'fw2', 'cdr2', 'fw3', 'cdr3', 'fw4']
+  
+  module:                                   # DataModule class
+    gen_extent: ${data.gen_extent}
+    gen_regions: ${data.gen_regions}
+    inference_only_mode: False              # True for inference, False for training/validation/testing
+    loaders:                                # DataLoader class
+        num_workers: 10 #30 #15                      # per dataloader (one dataloader per GPU, train, val and test)
+        prefetch_factor: 10 # 5 # 10             # number of batches to prefetch
+        persistent_workers: False
+  
+  dataset:                                  # {Train, Length, Fasta, Pdb}Dataset, Distributed{Train, Inference}BatchSampler classes
+
+    train_val_test_pdbs:                    # common filters for train/val/test set
+      csv_path: /ceph/opig-shared/users/spoendli/conformation_prediction/IgFM/metadata/all_atom_sims_new_val_cg_test_val_metadata.csv
+      min_num_res: 0                        # set to 0 to disable
+      max_num_res: 10000                    # set to 10000 to disable
+      max_resolution: 3.5                   # use 3.5 for forward folding
+      subset: null                           # take first k instances from train dataset
+
+    train:
+      dataset:
+        gen_extent: ${data.gen_extent}
+        gen_regions: ${data.gen_regions}
+        sim_proba_sampling: False              # sample one frame per simulations in each epoch based on its probability, currently only works with ABB3_CDRsim_metadata dataset
+        sim_proba_sampling_mode: sample       # sample frames based on probability distribution for train
+        ot: ${interpolant.ot}
+        rots_dist: ${interpolant.rots.dist}
+        ensemble_size: 10 #10                    # in train gradients are computed for ensemble, use smaller size  
+
+      single_struc: False 
+      single_struc_sampler:                   # DistributedTrainBatchSampler class
+        batch_size: 10
+        shuffle: True
+        num_struc_samples: null             # train on first k instances from dataset (null = all)
+        drop_last: True                      # drop last batch if it is smaller than batch_size
+
+      ensemble: True                  # run inference-like de novo generation and compute metrics as validation
+      ensemble_sampler:               # DistributedInferenceBatchSampler class
+        batch_size: 1                      # only works with batch_size=1 for now, setting ensemble_size to the largest possible value will in anycase require batch_size=1
+        shuffle: True
+
+    valid:
+      dataset:
+        gen_extent: ${data.gen_extent}
+        gen_regions: ${data.gen_regions}
+        sim_proba_sampling: False
+        sim_proba_sampling_mode: highest     # select frame with highest probability for val, selects the same frame for each epoch
+        ot: ${interpolant.ot}
+        rots_dist: ${interpolant.rots.dist}
+        ensemble_size: 50 #30                    # in val no gradients are computed for ensemble, use larger size  
+  
+      single_struc: False                       # run train-like loss computation as validation
+      single_struc_sampler:                   # DistributedTrainBatchSampler class
+        batch_size: 10
+        shuffle: False
+        num_struc_samples: null
+        drop_last: False                      # drop last batch if it is smaller than batch_size
+      
+      ensemble: True                  # run inference-like de novo generation and compute metrics as validation
+      ensemble_sampler:               # DistributedInferenceBatchSampler class
+        batch_size: 1 #2                     # only works with batch_size=1 for now, setting ensemble_size to the largest possible value will in anycase require batch_size=1
+        shuffle: True
+
+    extra_valid:
+      use_extra: ${experiment.validation.extra_validation}
+      dataset:
+        gen_extent: ${data.gen_extent}
+        gen_regions: ${data.gen_regions}
+        sim_proba_sampling: False
+        sim_proba_sampling_mode: highest     # select frame with highest probability for val, selects the same frame for each epoch
+        ot: ${interpolant.ot}
+        rots_dist: ${interpolant.rots.dist}
+        ensemble_size: 30                    # in val no gradients are computed for ensemble, use larger size  
+  
+      single_struc: False                       # run train-like loss computation as validation
+      single_struc_sampler:                   # DistributedTrainBatchSampler class
+        batch_size: 10
+        shuffle: False
+        num_struc_samples: null
+        drop_last: False                      # drop last batch if it is smaller than batch_size
+      
+      ensemble: True                  # run inference-like de novo generation and compute metrics as validation
+      ensemble_sampler:               # DistributedInferenceBatchSampler class
+        batch_size: 2 #2                     # only works with batch_size=1 for now, setting ensemble_size to the largest possible value will in anycase require batch_size=1
+        shuffle: True
+      
+    test:
+      dataset:
+        gen_extent: ${data.gen_extent}
+        gen_regions: ${data.gen_regions}
+        sim_proba_sampling: False
+        sim_proba_sampling_mode: highest     # select frame with highest probability for test, selects the same frame for each epoch
+        ot: ${interpolant.ot}
+        rots_dist: ${interpolant.rots.dist}
+        ensemble_size: 30 #30              
+
+      single_struc: False                      # run train-like loss computation at test time
+      single_struc_sampler:                   # DistributedTrainBatchSampler class
+        batch_size: 10
+        shuffle: False
+        num_struc_samples: null
+        drop_last: False
+      
+      ensemble: True                  # run inference-like de novo generation and compute metrics at test time
+      ensemble_sampler:               # DistributedInferenceBatchSampler class
+        batch_size: 2                      # only works with batch_size=1 for now, setting ensemble_size to the largest possible value will in anycase require batch_size=1
+        shuffle: False
+
+    extra_test:
+      use_extra: ${experiment.testing.extra_validation} 
+      dataset:
+        gen_extent: ${data.gen_extent}
+        gen_regions: ${data.gen_regions}
+        sim_proba_sampling: False
+        sim_proba_sampling_mode: highest     # select frame with highest probability for test, selects the same frame for each epoch
+        ot: ${interpolant.ot}
+        rots_dist: ${interpolant.rots.dist}
+        ensemble_size: 30              
+
+      single_struc: False                      # run train-like loss computation at test time
+      single_struc_sampler:                   # DistributedTrainBatchSampler class
+        batch_size: 10
+        shuffle: False
+        num_struc_samples: null
+        drop_last: False
+      
+      ensemble: True                  # run inference-like de novo generation and compute metrics at test time
+      ensemble_sampler:               # DistributedInferenceBatchSampler class
+        batch_size: 2                      # only works with batch_size=1 for now, setting ensemble_size to the largest possible value will in anycase require batch_size=1
+        shuffle: False
+
+    predict:
+      num_samples: null                    # number of samples to generate for each input sequence
+      csv_path: null
+
+      pred_sampler:
+        batch_size: null

@@ -1,0 +1,42 @@
+interpolant:                                # Interpolant class
+  task : ${data.task}
+  gen_extent: ${data.gen_extent}
+  separate_t: False                         # sample separate t,t' for sequence and structure modalities during training (or training-like validation/testing)
+  fwd_fold_prob: 1                          # no effect if task = 'fwd_fold', per-sample probability of doing pure forward folding during training (t_struc=sampled, t_seq=1) - separate_t must be True
+  inv_fold_prob: 0                          # effects structure noising for 'fwd_fold' -> set to 0F, per-sample probability of doing pure inverse folding during training (t_struc=1, t_seq=sampled) - separate_t must be True
+  self_condition: ${model.edge_features.self_condition}
+  min_t: 1e-2                               # noise-scale times sampled in [t_min,1-t_min]
+  zero_t: False                              # set t to 0 for all samples, useful for debugging
+  shared_t: True                            # use shared t for all samples in a batch
+  csv_path: ${data.dataset.train_val_test_pdbs.csv_path}
+  max_resolution: ${data.dataset.train_val_test_pdbs.max_resolution}
+  ot:
+    use_ot: True # True                    # use optimal transport for batch noising
+    ot_mode: dataset                        # in {dataset, batch}, approximate optimal transport matrix over dataset or minibatch
+    ot_dataset_col: aa_seq                  # column in dataset csv to select for OT, only used if ot_mode = 'dataset', aa_seq, seq_len
+    ot_max_samples: 50                      # max number of samples to use for OT, only used if ot_mode = 'dataset'
+    ot_fn: emd                              # only emd implemented for now
+    ot_distance: se3                        # in {se3, so3, r3}, distance cost for OT
+    so3_weight: 10.0                        # relative weight of so3 to r3 in summation for se3, use 10 to balance magnitude
+  rots:
+    train_schedule: linear # exp # pow                     # in {linear, exp, pow}
+    train_exp_rate: 2
+    power: 1.48                             # t^power for pow schedule, 1.71, 1.48, 1.4 to sample double from bin [0,0.25) as bin [0.25,0.5), [0.5,0.75), [0.75,1)
+    sample_schedule: exp                    # in {linear, exp, pow}
+    sample_exp_rate: 10
+    dist: USO3                              # noise distribution in {USO3, IGSO3}
+  trans:
+    train_schedule: linear # pow                     # in {linear, exp, pow}
+    train_exp_rate: 2
+    power: 1.48                             # t^power for pow schedule
+    sample_schedule: linear                 # in {linear}, nothing else implemented
+    sample_exp_rate: 10
+  aatypes:
+    interpolant_type: masking               # in {masking, uniform}
+    do_purity: True                         # use purity sampling (interpolant_type must be masking)
+    noise: 20.0                             # eta (stochasticity parameter of CTMC)
+    temp: 0.1                               # adjusts softmax over during sampling
+    train_schedule: linear                  # in {linear}, nothing else implemented
+    sample_schedule: linear                 # in {linear}, nothing else implemented
+  sampling:
+    num_timesteps: 10 #10 # 10 #100

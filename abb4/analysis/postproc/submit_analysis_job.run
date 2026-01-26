@@ -1,0 +1,43 @@
+#!/bin/bash
+#SBATCH -J EsembleMetrics # Job name
+#SBATCH --time=0-02:00:00 # Walltime
+#SBATCH --cluster srf_cpu_01
+#SBATCH --cpus-per-task=40
+#SBATCH --mem=100G # total memory (in MB)
+# #SBATCH --gres=gpu:Ampere_A100_80GB:1
+#SBATCH --ntasks-per-node=1 # 1 tasks
+#SBATCH --nodes=1 # number of nodes
+#SBATCH --partition=standard-cpu # Select a specific partition rather than default
+#SBATCH -w swan11.cpu.stats.ox.ac.uk # Provide a specific node/nodelist rather than the standard nodelist associated with the partition (useful if you have a data setup on one specific node)
+#SBATCH --output=/vols/opig/users/spoendli/conformation_prediction/conformation_prediction/analysis/conformation_prediction_benchmark/slurms/slurm_%j.out # Writes standard output to this file. %j is jobnumber
+#SBATCH --error=/vols/opig/users/spoendli/conformation_prediction/conformation_prediction/analysis/conformation_prediction_benchmark/slurms/slurm_%j.out # Writes error messages to this file. %j is jobnumber
+
+
+# Check for pdb code and chain arguments
+if [ -z "$1" ] || [ -z "$2" ]; then
+    echo "Error: Missing arguments. Usage: $0 <model> <dset>"
+    exit 1
+fi
+
+MODEL=$1
+DSET=$2
+
+bash
+
+source /homes/spoendli/miniconda3/etc/profile.d/conda.sh
+
+cd /vols/opig/users/spoendli/conformation_prediction/IgFM/
+conda env create -f ig_FM.yml
+conda activate ig_flow
+pip install .
+pip install torch_geometric
+pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.0.1+cpu.html
+conda deactivate
+
+echo "Running conformation prediction analysis for model $MODEL and dataset $DSET"
+
+conda activate ig_flow
+cd /vols/opig/users/spoendli/conformation_prediction/conformation_prediction/analysis/postproc/
+python calculate_ensemble_metrics.py --model $MODEL --dset $DSET --n_cores 40
+
+echo "Done"

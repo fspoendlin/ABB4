@@ -1,0 +1,533 @@
+cfg:
+  data:
+    task: fwd_fold
+    gen_extent: full
+    gen_regions:
+    - H:
+      - fw1
+      - cdr1
+      - fw2
+      - cdr2
+      - fw3
+      - cdr3
+      - fw4
+    - L:
+      - fw1
+      - cdr1
+      - fw2
+      - cdr2
+      - fw3
+      - cdr3
+      - fw4
+    module:
+      gen_extent: full
+      gen_regions:
+      - H:
+        - fw1
+        - cdr1
+        - fw2
+        - cdr2
+        - fw3
+        - cdr3
+        - fw4
+      - L:
+        - fw1
+        - cdr1
+        - fw2
+        - cdr2
+        - fw3
+        - cdr3
+        - fw4
+      inference_only_mode: true
+      loaders:
+        num_workers: 1
+        prefetch_factor: 10
+        persistent_workers: false
+    dataset:
+      train_val_test_pdbs:
+        csv_path: /ceph/opig-shared/users/spoendli/conformation_prediction/IgFM/metadata/all_atom_sims_new_val_cg_test_val_metadata.csv
+        min_num_res: 0
+        max_num_res: 10000
+        max_resolution: 3.5
+        subset: null
+      train:
+        dataset:
+          gen_extent: full
+          gen_regions:
+          - H:
+            - fw1
+            - cdr1
+            - fw2
+            - cdr2
+            - fw3
+            - cdr3
+            - fw4
+          - L:
+            - fw1
+            - cdr1
+            - fw2
+            - cdr2
+            - fw3
+            - cdr3
+            - fw4
+          sim_proba_sampling: false
+          sim_proba_sampling_mode: sample
+          ot:
+            use_ot: true
+            ot_mode: dataset
+            ot_dataset_col: aa_seq
+            ot_max_samples: 50
+            ot_fn: emd
+            ot_distance: se3
+            so3_weight: 10.0
+          rots_dist: USO3
+          ensemble_size: 10
+        single_struc: false
+        single_struc_sampler:
+          batch_size: 10
+          shuffle: true
+          num_struc_samples: null
+          drop_last: true
+        ensemble: true
+        ensemble_sampler:
+          batch_size: 1
+          shuffle: true
+      valid:
+        dataset:
+          gen_extent: full
+          gen_regions:
+          - H:
+            - fw1
+            - cdr1
+            - fw2
+            - cdr2
+            - fw3
+            - cdr3
+            - fw4
+          - L:
+            - fw1
+            - cdr1
+            - fw2
+            - cdr2
+            - fw3
+            - cdr3
+            - fw4
+          sim_proba_sampling: false
+          sim_proba_sampling_mode: highest
+          ot:
+            use_ot: true
+            ot_mode: dataset
+            ot_dataset_col: aa_seq
+            ot_max_samples: 50
+            ot_fn: emd
+            ot_distance: se3
+            so3_weight: 10.0
+          rots_dist: USO3
+          ensemble_size: 50
+        single_struc: false
+        single_struc_sampler:
+          batch_size: 10
+          shuffle: false
+          num_struc_samples: null
+          drop_last: false
+        ensemble: true
+        ensemble_sampler:
+          batch_size: 1
+          shuffle: true
+      extra_valid:
+        use_extra: true
+        dataset:
+          gen_extent: full
+          gen_regions:
+          - H:
+            - fw1
+            - cdr1
+            - fw2
+            - cdr2
+            - fw3
+            - cdr3
+            - fw4
+          - L:
+            - fw1
+            - cdr1
+            - fw2
+            - cdr2
+            - fw3
+            - cdr3
+            - fw4
+          sim_proba_sampling: false
+          sim_proba_sampling_mode: highest
+          ot:
+            use_ot: true
+            ot_mode: dataset
+            ot_dataset_col: aa_seq
+            ot_max_samples: 50
+            ot_fn: emd
+            ot_distance: se3
+            so3_weight: 10.0
+          rots_dist: USO3
+          ensemble_size: 30
+        single_struc: false
+        single_struc_sampler:
+          batch_size: 10
+          shuffle: false
+          num_struc_samples: null
+          drop_last: false
+        ensemble: true
+        ensemble_sampler:
+          batch_size: 2
+          shuffle: true
+      test:
+        dataset:
+          gen_extent: full
+          gen_regions:
+          - H:
+            - fw1
+            - cdr1
+            - fw2
+            - cdr2
+            - fw3
+            - cdr3
+            - fw4
+          - L:
+            - fw1
+            - cdr1
+            - fw2
+            - cdr2
+            - fw3
+            - cdr3
+            - fw4
+          sim_proba_sampling: false
+          sim_proba_sampling_mode: highest
+          ot:
+            use_ot: true
+            ot_mode: dataset
+            ot_dataset_col: aa_seq
+            ot_max_samples: 50
+            ot_fn: emd
+            ot_distance: se3
+            so3_weight: 10.0
+          rots_dist: USO3
+          ensemble_size: 30
+        single_struc: false
+        single_struc_sampler:
+          batch_size: 10
+          shuffle: false
+          num_struc_samples: null
+          drop_last: false
+        ensemble: true
+        ensemble_sampler:
+          batch_size: 2
+          shuffle: false
+      extra_test:
+        use_extra: false
+        dataset:
+          gen_extent: full
+          gen_regions:
+          - H:
+            - fw1
+            - cdr1
+            - fw2
+            - cdr2
+            - fw3
+            - cdr3
+            - fw4
+          - L:
+            - fw1
+            - cdr1
+            - fw2
+            - cdr2
+            - fw3
+            - cdr3
+            - fw4
+          sim_proba_sampling: false
+          sim_proba_sampling_mode: highest
+          ot:
+            use_ot: true
+            ot_mode: dataset
+            ot_dataset_col: aa_seq
+            ot_max_samples: 50
+            ot_fn: emd
+            ot_distance: se3
+            so3_weight: 10.0
+          rots_dist: USO3
+          ensemble_size: 30
+        single_struc: false
+        single_struc_sampler:
+          batch_size: 10
+          shuffle: false
+          num_struc_samples: null
+          drop_last: false
+        ensemble: true
+        ensemble_sampler:
+          batch_size: 2
+          shuffle: false
+      predict:
+        num_samples: 1
+        csv_path: metadata/latest_test_val_metadata.csv
+        pred_sampler:
+          batch_size: 100
+  interpolant:
+    task: fwd_fold
+    gen_extent: full
+    separate_t: false
+    fwd_fold_prob: 1
+    inv_fold_prob: 0
+    self_condition: false
+    min_t: 0.01
+    zero_t: false
+    shared_t: true
+    csv_path: /ceph/opig-shared/users/spoendli/conformation_prediction/IgFM/metadata/all_atom_sims_new_val_cg_test_val_metadata.csv
+    max_resolution: 3.5
+    ot:
+      use_ot: true
+      ot_mode: dataset
+      ot_dataset_col: aa_seq
+      ot_max_samples: 50
+      ot_fn: emd
+      ot_distance: se3
+      so3_weight: 10.0
+    rots:
+      train_schedule: linear
+      train_exp_rate: 2
+      power: 1.48
+      sample_schedule: exp
+      sample_exp_rate: 10
+      dist: USO3
+    trans:
+      train_schedule: linear
+      train_exp_rate: 2
+      power: 1.48
+      sample_schedule: linear
+      sample_exp_rate: 10
+    aatypes:
+      interpolant_type: masking
+      do_purity: true
+      noise: 20.0
+      temp: 0.1
+      train_schedule: linear
+      sample_schedule: linear
+    sampling:
+      num_timesteps: 2
+  model:
+    task: fwd_fold
+    node_embed_size: 256
+    edge_embed_size: 256
+    aatype_pred_num_tokens: 21
+    transformer_dropout: 0.2
+    node_features:
+      task: fwd_fold
+      c_s: 256
+      c_pos_emb: 128
+      c_timestep_emb: 128
+      aatype_pred_num_tokens: 21
+      embed_imgt_numeric: false
+      embed_region: true
+      self_condition: false
+    edge_features:
+      c_s: 256
+      c_p: 256
+      feat_dim: 64
+      num_bins: 22
+      self_condition: false
+    ipa:
+      c_s: 256
+      c_z: 256
+      c_hidden: 16
+      no_heads: 12
+      no_qk_points: 4
+      no_v_points: 8
+      seq_tfmr_num_heads: 4
+      seq_tfmr_num_layers: 2
+      num_blocks: 8
+      dropout: 0.1
+    torsion_angles:
+      c_in: 256
+      c_hidden: 256
+      no_angles: 7
+  experiment:
+    debug: false
+    num_devices: 1
+    warm_start_cfg_override: false
+    warm_start: null
+    load_all_states: false
+    warm_start_weights: null
+    crash_dir: /ceph/opig-shared/users/spoendli/conformation_prediction/IgFM/crash_dir_latest
+    training:
+      loss: tot_loss
+      training_losses:
+        crash_dir: /ceph/opig-shared/users/spoendli/conformation_prediction/IgFM/crash_dir_latest
+        t_normalize_clip: 0.9
+        bb_atom_scale: 0.1
+        trans_scale: 0.1
+        loss_t_weighting: null
+        loss_t_weighting_exp_rate: 1.39
+        translation_loss_weight: 8
+        rotation_loss_weight: 0.8
+        aatypes_loss_weight: 0
+        aatypes_loss_use_likelihood_weighting: false
+        bb_loss_weight: 0
+        bb_loss_t_pass: 0
+        pair_loss_weight: 0
+        pair_loss_t_pass: 0
+        A_fape_loss_weight: 0.08
+        A_fape_loss_t_pass: 0
+        cdr_fw_fape_weight: 1
+        BB_fape_loss_weight: 0
+        BB_fape_loss_t_pass: 0
+        BB_fape_cdr_weighting: true
+        torsion_loss_weight: 0.4
+        torsion_loss_t_pass: 0
+        torsion_norm_loss_weight: 0.02
+        torsion_norm_t_pass: 0
+        dist_loss_weight: 0
+        dist_loss_t_pass: 0
+        angle_loss_weight: 0
+        angle_loss_t_pass: 0
+        clashes_loss_weight: 0
+        clashes_loss_t_pass: 0
+        rmsf_loss: chi2
+        rmsf_loss_region: all
+        rmsf_loss_weight: 0.05
+        rmsf_loss_t_pass: 0
+        rmsf_loss_model_variance: 0.1
+        rmsf_loss_sampling_var_weight: 0
+        rmsf_loss_model_var_weight: 1
+    validation:
+      loss: tot_loss
+      training_losses:
+        crash_dir: /ceph/opig-shared/users/spoendli/conformation_prediction/IgFM/crash_dir_latest
+        t_normalize_clip: 0.9
+        bb_atom_scale: 0.1
+        trans_scale: 0.1
+        loss_t_weighting: null
+        loss_t_weighting_exp_rate: 1.39
+        translation_loss_weight: 8
+        rotation_loss_weight: 0.8
+        aatypes_loss_weight: 0
+        aatypes_loss_use_likelihood_weighting: false
+        bb_loss_weight: 0
+        bb_loss_t_pass: 0
+        pair_loss_weight: 0
+        pair_loss_t_pass: 0
+        A_fape_loss_weight: 0.08
+        A_fape_loss_t_pass: 0
+        cdr_fw_fape_weight: 1
+        BB_fape_loss_weight: 0
+        BB_fape_loss_t_pass: 0
+        BB_fape_cdr_weighting: true
+        torsion_loss_weight: 0.4
+        torsion_loss_t_pass: 0
+        torsion_norm_loss_weight: 0.02
+        torsion_norm_t_pass: 0
+        dist_loss_weight: 0
+        dist_loss_t_pass: 0
+        angle_loss_weight: 0
+        angle_loss_t_pass: 0
+        clashes_loss_weight: 0
+        clashes_loss_t_pass: 0
+        rmsf_loss: chi2
+        rmsf_loss_region: all
+        rmsf_loss_weight: 0.05
+        rmsf_loss_t_pass: 0
+        rmsf_loss_model_variance: 0.1
+        rmsf_loss_sampling_var_weight: 0
+        rmsf_loss_model_var_weight: 1
+      step_validation: true
+      sample_validation: true
+      extra_validation: true
+      sample_every_n_epochs: 1000000
+      save_sampled_strucs: false
+      save_traj: false
+      save_int_traj: false
+    testing:
+      loss: tot_loss
+      training_losses:
+        crash_dir: /ceph/opig-shared/users/spoendli/conformation_prediction/IgFM/crash_dir_latest
+        t_normalize_clip: 0.9
+        bb_atom_scale: 0.1
+        trans_scale: 0.1
+        loss_t_weighting: null
+        loss_t_weighting_exp_rate: 1.39
+        translation_loss_weight: 8
+        rotation_loss_weight: 0.8
+        aatypes_loss_weight: 0
+        aatypes_loss_use_likelihood_weighting: false
+        bb_loss_weight: 0
+        bb_loss_t_pass: 0
+        pair_loss_weight: 0
+        pair_loss_t_pass: 0
+        A_fape_loss_weight: 0.08
+        A_fape_loss_t_pass: 0
+        cdr_fw_fape_weight: 1
+        BB_fape_loss_weight: 0
+        BB_fape_loss_t_pass: 0
+        BB_fape_cdr_weighting: true
+        torsion_loss_weight: 0.4
+        torsion_loss_t_pass: 0
+        torsion_norm_loss_weight: 0.02
+        torsion_norm_t_pass: 0
+        dist_loss_weight: 0
+        dist_loss_t_pass: 0
+        angle_loss_weight: 0
+        angle_loss_t_pass: 0
+        clashes_loss_weight: 0
+        clashes_loss_t_pass: 0
+        rmsf_loss: chi2
+        rmsf_loss_region: all
+        rmsf_loss_weight: 0.05
+        rmsf_loss_t_pass: 0
+        rmsf_loss_model_variance: 0.1
+        rmsf_loss_sampling_var_weight: 0
+        rmsf_loss_model_var_weight: 1
+      ckpt_name: last.ckpt
+      step_validation: true
+      sample_validation: true
+      extra_validation: false
+      save_sampled_strucs: false
+    prediction:
+      save_traj: false
+      save_int_traj: false
+      output_dir: predictions/
+      ckpt_path: ckpt/abb4_STEROIDS/abb4_STEROIDS.ckpt
+    optimizer:
+      which: AdamW
+      lr: 1.0e-06
+      weight_decay: 0.01
+    lr_scheduler:
+      use: warmup_cosine_annealing
+      T_0: 75
+      T_mult: 1
+      eta_min: 1.0e-07
+      warmup_start_factor: 0.01
+      warmup_end_factor: 1.0
+      warmup_epochs: 10
+      interval: epoch
+      frequency: 1
+      strict: false
+    trainer:
+      overfit_batches: 0
+      min_epochs: 1
+      max_epochs: 5000
+      accelerator: gpu
+      log_every_n_steps: 1
+      deterministic: false
+      strategy: ddp_find_unused_parameters_true
+      check_val_every_n_epoch: 1
+      accumulate_grad_batches: 5
+    wandb:
+      name: fwd_fold_mAbs_1-26-17-23
+      save_dir: ./logs
+      project: ab_folding
+      entity: f-spoendlin
+      group: ensemble
+      save_code: true
+      tags: []
+    checkpointer:
+      dirpath: ./
+      save_last: true
+      save_top_k: 5
+      every_n_epochs: null
+      save_on_train_epoch_end: false
+      monitor: valid/h_cdr3_d_mean_rmsd_sims
+      mode: min

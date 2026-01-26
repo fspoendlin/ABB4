@@ -1,0 +1,39 @@
+
+model:
+  task: ${data.task}
+  node_embed_size: 256 # 256
+  edge_embed_size: 256 # 128 / 256
+  aatype_pred_num_tokens: 21                # 20 AAs + <MASK>
+  transformer_dropout: 0.2                  # dropout in Transformer Encoder (do not confuse with dropout in IPA)
+  node_features:
+    task: ${model.task}
+    c_s: ${model.node_embed_size}
+    c_pos_emb: 128 # 128
+    c_timestep_emb: 128 # 128
+    aatype_pred_num_tokens: ${model.aatype_pred_num_tokens}
+    embed_imgt_numeric: False
+    embed_region: True
+    self_condition: ${model.edge_features.self_condition}
+  edge_features:
+    c_s: ${model.node_embed_size}
+    c_p: ${model.edge_embed_size}
+    feat_dim: 64
+    num_bins: 22
+    self_condition: False                   # edge reps include distogram of previous-step t1-calpha-location-prediction (applied stochastically, 50% of the time -> FlowModule.process_struc_batch())
+                                            # currently do not use for task == 'fwd_fold'
+  ipa:
+    c_s: ${model.node_embed_size}
+    c_z: ${model.edge_embed_size}
+    c_hidden: 16
+    no_heads: 12 # 8 / 12
+    no_qk_points: 4 # 8
+    no_v_points: 8 # 12
+    seq_tfmr_num_heads: 4
+    seq_tfmr_num_layers: 2  #4
+    num_blocks: 8 # 6 # 8       #6 in AbFM
+    dropout: 0.1 #0.1  # 0.0                          # dropout in IPA layer (do not confuse with dropout in Transformer Encoder)
+  torsion_angles:
+    c_in: ${model.node_embed_size}
+    c_hidden: 256 # default in ABB2              # dimension of linear layers for torsion angle prediction
+    no_angles: 7                                 # number of torsion angles to predict
+ 
