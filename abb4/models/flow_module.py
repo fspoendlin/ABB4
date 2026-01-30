@@ -732,6 +732,7 @@ class FlowModule(LightningModule):
                                 aatype=aatypes,
                                 overwrite=True,
                                 no_indexing=True,
+                                imgt_numeric=imgt,
                                 )
             # with open(os.path.join(write_dir, pdb_name, f'sample_{copy_index}.pkl'), "wb") as f:
             #     pickle.dump({"pred_atom37": pred_atom37, "res_mask": res_mask, 'imgt': imgt, 'aatypes': aatypes}, f)
@@ -754,7 +755,8 @@ class FlowModule(LightningModule):
                     prot_pos=pred_traj,
                     file_path=os.path.join(write_dir, pdb_name, f'sample_{copy_index}_clean_traj.pdb'),
                     aatype=aatypes_save,
-                    overwrite=True
+                    overwrite=True,
+                    imgt_numeric=imgt,
                     )
 
             if self._exp_cfg.prediction.save_int_traj:
@@ -763,7 +765,8 @@ class FlowModule(LightningModule):
                     prot_pos=pred_int_traj,
                     file_path=os.path.join(write_dir, pdb_name, f'sample_{copy_index}_int_traj.pdb'),
                     aatype=aatypes_save,
-                    overwrite=True
+                    overwrite=True,
+                    imgt_numeric=imgt,
                     )
 
         return

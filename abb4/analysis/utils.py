@@ -22,13 +22,20 @@ def create_full_prot(
         atom37_mask: np.ndarray,
         aatype=None,
         b_factors=None,
+        imgt_numeric=None,
     ):
     assert atom37.ndim == 3
     assert atom37.shape[-1] == 3
     assert atom37.shape[-2] == 37
     n = atom37.shape[0]
     residue_index = np.arange(n)
-    chain_index = np.zeros(n)
+    
+    # Set chain indices: 0 for Heavy chain (imgt < 1000), 1 for Light chain (imgt >= 1000)
+    if imgt_numeric is not None:
+        chain_index = np.where(imgt_numeric < 1000, 0, 1)
+    else:
+        chain_index = np.zeros(n)
+    
     if b_factors is None:
         b_factors = np.zeros([n, 37])
     if aatype is None:
@@ -49,6 +56,7 @@ def write_prot_to_pdb(
         overwrite=False,
         no_indexing=False,
         b_factors=None,
+        imgt_numeric=None,
     ):
     if overwrite:
         max_existing_idx = 0
@@ -69,17 +77,17 @@ def write_prot_to_pdb(
 
     with open(save_path, 'w') as f:
         
-        def write_protein_to_file(f, pos37, aatype, b_factors, model):
+        def write_protein_to_file(f, pos37, aatype, b_factors, model, imgt=None):
             atom37_mask = np.sum(np.abs(pos37), axis=-1) > 1e-7
-            prot = create_full_prot(pos37, atom37_mask, aatype=aatype.astype(int), b_factors=b_factors)
+            prot = create_full_prot(pos37, atom37_mask, aatype=aatype.astype(int), b_factors=b_factors, imgt_numeric=imgt)
             pdb_prot = protein.to_pdb(prot, model=model, add_end=False)
             f.write(pdb_prot)
 
         if prot_pos.ndim == 4:
             for t, pos37 in enumerate(prot_pos):
-                write_protein_to_file(f, pos37, aatype[t], b_factors, model=t + 1)
+                write_protein_to_file(f, pos37, aatype[t], b_factors, model=t + 1, imgt=imgt_numeric)
         elif prot_pos.ndim == 3:
-            write_protein_to_file(f, prot_pos, aatype, b_factors, model=1)
+            write_protein_to_file(f, prot_pos, aatype, b_factors, model=1, imgt=imgt_numeric)
         else:
             raise ValueError(f'Invalid positions shape {prot_pos.shape}')
         f.write('END')
