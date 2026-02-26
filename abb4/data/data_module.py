@@ -330,6 +330,9 @@ class PredictDataset(Dataset):
             ]
 
         results = self.numbering_model.number(seq)
+        
+        if results is None:
+            raise ValueError(f'Anarcii failed to number sequences {csv_row.VH_seq} / {csv_row.VL_seq} in pdb {csv_row.pdb_name}')
 
         imgt_numeric = []
         Fv_seq = []

@@ -76,11 +76,12 @@ class ModelRun:
         if len(devices) > 1:
             self._exp_cfg.trainer.accumulate_grad_batches = self._exp_cfg.trainer.accumulate_grad_batches//len(devices)
         
-        # make sure we checkpoint the model during training/validation
-        callbacks = [
-                     ModelCheckpoint(**self._exp_cfg.checkpointer,
-                                     filename='best-{epoch}-{step}'),
-        ]
+        callbacks = []
+        if mode != 'sample':
+            callbacks = [
+                        ModelCheckpoint(**self._exp_cfg.checkpointer,
+                                        filename='best-{epoch}-{step}'),
+            ]
 
         trainer = Trainer(**self._exp_cfg.trainer,
                         # detect_anomaly=True,
@@ -181,5 +182,5 @@ class ModelRun:
             OmegaConf.save(config=self._cfg, f=f)
         log.info(f'Saved config and samples to {self._exp_cfg.prediction.output_dir}')
 
-        trainer = self.setup_trainer()
+        trainer = self.setup_trainer(mode='sample')
         trainer.predict(model=self._model, datamodule=self._datamodule)

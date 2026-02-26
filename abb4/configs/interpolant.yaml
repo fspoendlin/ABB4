@@ -8,6 +8,7 @@ interpolant:                                # Interpolant class
   min_t: 1e-2                               # noise-scale times sampled in [t_min,1-t_min]
   zero_t: False                              # set t to 0 for all samples, useful for debugging
   shared_t: True                            # use shared t for all samples in a batch
+  load_dataset_csv: True                    # set False for inference-only runs to avoid loading train/val/test metadata CSV
   csv_path: ${data.dataset.train_val_test_pdbs.csv_path}
   max_resolution: ${data.dataset.train_val_test_pdbs.max_resolution}
   ot:

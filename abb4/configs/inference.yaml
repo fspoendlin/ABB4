@@ -11,29 +11,31 @@ data:
   module:
     inference_only_mode: True
     loaders:                                # DataLoader class
-      num_workers: 1                       # per dataloader (one dataloader per GPU, train, val and test)
+      num_workers: 10                       # per dataloader (one dataloader per GPU, train, val and test)
       prefetch_factor: 10             # number of batches to prefetch
 
   dataset:
     predict:
-        num_samples: 100          # number of samples to generate for each input sequence
-        csv_path: metadata/latest_test_val_metadata.csv
+        num_samples: 250  # 250        # number of samples to generate for each input sequence
+        csv_path: /ceph/opig-shared/users/spoendli/conformation_prediction/conformation_prediction/data/datasets/sabdab_scfvs_in_trainset_expressed_in_ecoli.csv
+        # /ceph/opig-shared/users/spoendli/conformation_prediction/conformation_prediction/data/datasets/sabdab_scfvs_selected_for_nmr.csv
         pred_sampler:
-          batch_size: 25
+          batch_size: 75
 
-    # train_val_test_pdbs:                    # common filters for train/val/test set
-    #   csv_path: metadata/ABB3_latest_CDRsim_metadata_random_ceph_paths.csv
-  
 interpolant:
+  load_dataset_csv: False
+  csv_path: null
+  max_resolution: null
   sampling:
     num_timesteps: 100
                
 experiment:
-  num_devices: 1 #4
+  num_devices: 4 #4
   prediction:
     save_traj: False
     save_int_traj: False # False
-    output_dir: predictions/
+    output_dir: /ceph/opig-shared/projects/spoendlin-EnsemblePrediction/nmr_exp/sabdab_scfvs_in_trainset_expressed_in_ecoli/predictions_raw/
+    # /ceph/opig-shared/projects/spoendlin-EnsemblePrediction/nmr_exp/sabdab_scfvs/predictions_raw/
     ckpt_path: ckpt/abb4_STEROIDS/abb4_STEROIDS.ckpt
 
   checkpointer:

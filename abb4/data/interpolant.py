@@ -196,13 +196,27 @@ class Interpolant:
         self.num_tokens = 21 if self._aatypes_cfg.interpolant_type == "masking" else 20
         self._igso3 = None
 
-        csv = pd.read_csv(cfg.csv_path)
-        self.csv = csv[csv.Resolution <= cfg.max_resolution]
-        self.train_csv = csv[csv.split == 'train']
-        self.val_csv = csv[csv.split == 'val']
-        self.test_csv = csv[csv.split == 'test']
-        self.extra_val_csv = self.csv[self.csv.split == 'val_extra']
-        self.extra_test_csv = self.csv[self.csv.split == 'test_extra']
+        self.csv = None
+        self.train_csv = None
+        self.val_csv = None
+        self.test_csv = None
+        self.extra_val_csv = None
+        self.extra_test_csv = None
+
+        should_load_dataset_csv = cfg.get('load_dataset_csv', True)
+        if should_load_dataset_csv:
+            if cfg.csv_path is None:
+                raise ValueError('interpolant.csv_path must be set when interpolant.load_dataset_csv=True')
+            if cfg.max_resolution is None:
+                raise ValueError('interpolant.max_resolution must be set when interpolant.load_dataset_csv=True')
+
+            csv = pd.read_csv(cfg.csv_path)
+            self.csv = csv[csv.Resolution <= cfg.max_resolution]
+            self.train_csv = csv[csv.split == 'train']
+            self.val_csv = csv[csv.split == 'val']
+            self.test_csv = csv[csv.split == 'test']
+            self.extra_val_csv = self.csv[self.csv.split == 'val_extra']
+            self.extra_test_csv = self.csv[self.csv.split == 'test_extra']
 
         if self._cfg.ot.ot_fn == "emd":
             self.ot_fn = pot.emd
