@@ -7,6 +7,7 @@ import os
 from anarcii import Anarcii
 # import warnings
 import argparse
+import sys
 
 arg_parser = argparse.ArgumentParser(description="Renumber predicted antibody structures to IMGT numbering using Anarcii")
 arg_parser.add_argument('--pred_path', type=str, required=True, help='Path to the predicted PDB file to be renumbered')
@@ -108,6 +109,12 @@ def main(pred_path, out_path, gpu=False):
 
     dirs = [d for d in glob(f"{pred_path}/*") if os.path.isdir(d)]
     print(f"Found {len(dirs)} directories to process.")
+
+    is_batch_job = any(
+        key in os.environ
+        for key in ("SLURM_JOB_ID", "PBS_JOBID", "LSB_JOBID", "JOB_ID")
+    ) or not sys.stderr.isatty()
+
     for dir in dirs:
 
         if out_path:
@@ -118,7 +125,12 @@ def main(pred_path, out_path, gpu=False):
         pdbs = glob(f"{dir}/*.pdb")
 
         count = 0
-        for pdb in tqdm(pdbs, desc=f"Renumbering PDBs in {dir}", total=len(pdbs)):
+        pdb_iter = pdbs if is_batch_job else tqdm(
+            pdbs,
+            desc=f"Renumbering PDBs in {dir}",
+            total=len(pdbs),
+        )
+        for pdb in pdb_iter:
             try:
                 os.makedirs(os.path.dirname(pdb_out_stem), exist_ok=True)
                 outpath = pdb_out_stem+os.path.basename(pdb)

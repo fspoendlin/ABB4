@@ -19,7 +19,7 @@ data:
   dataset:                                  # {Train, Length, Fasta, Pdb}Dataset, Distributed{Train, Inference}BatchSampler classes
 
     train_val_test_pdbs:                    # common filters for train/val/test set
-      csv_path: /ceph/opig-shared/users/spoendli/conformation_prediction/IgFM/metadata/all_atom_sims_new_val_cg_test_val_metadata.csv
+      csv_path: /ceph/opig-shared/users/haque/DPhil/ABB4/ABB4/reformatted_weizmann.csv
       min_num_res: 0                        # set to 0 to disable
       max_num_res: 10000                    # set to 10000 to disable
       max_resolution: 3.5                   # use 3.5 for forward folding

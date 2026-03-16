@@ -1,4 +1,32 @@
-# Ignore CSV files in subdirectories
+# Ignore all top-level directories by default.
+/*/
+
+# Allow only these top-level directories.
+!/abb4/
+!/metadata/
+!/openfold/
+!/scripts/
+
+# Re-include all contents within allowed directories.
+!/abb4/**
+!/metadata/**
+!/openfold/**
+!/scripts/**
+
+# Ignore generated artifact directories anywhere.
+**/output/
+**/predictions/
+**/predictions_imgt/
+**/predictions_imgt_v2/
+**/lightning_logs/
+**/logs/
+**/ckpt/
+
+# Ignore CSV files in subdirectories; keep top-level CSV files.
 **/*.csv
 !/*.csv
+
+# Ignore PDB files everywhere.
 *.pdb
+**/__pycache__/
+*.pyc

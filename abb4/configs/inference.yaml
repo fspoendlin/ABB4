@@ -11,29 +11,33 @@ data:
   module:
     inference_only_mode: True
     loaders:                                # DataLoader class
-      num_workers: 1                       # per dataloader (one dataloader per GPU, train, val and test)
+      num_workers: 10                       # per dataloader (one dataloader per GPU, train, val and test)
       prefetch_factor: 10             # number of batches to prefetch
 
   dataset:
     predict:
-        num_samples: 100          # number of samples to generate for each input sequence
-        csv_path: metadata/latest_test_val_metadata.csv
+        num_samples: 50 #gpu03 used 500         # number of samples to generate for each input sequence
+        csv_path: /ceph/opig-shared/users/haque/DPhil/ABB4/ABB4/reformatted_weizmann.csv
         pred_sampler:
-          batch_size: 25
+          batch_size: 25 #gpu03 used 10
 
-    # train_val_test_pdbs:                    # common filters for train/val/test set
-    #   csv_path: metadata/ABB3_latest_CDRsim_metadata_random_ceph_paths.csv
+    #train_val_test_pdbs:                    # common filters for train/val/test set
+    #  csv_path: /ceph/opig-shared/users/haque/DPhil/ABB4/ABB4/reformatted_weizmann.csv
+    #  min_num_res: 0                        # set to 0 to disable
+    #  max_num_res: 10000                    # set to 10000 to disable
+    #  max_resolution: 3.5                   # use 3.5 for forward folding
+    #  subset: null                           # take first k instances from train dataset
   
 interpolant:
   sampling:
-    num_timesteps: 100
+    num_timesteps: 50
                
 experiment:
-  num_devices: 1 #4
+  num_devices: 8 #4
   prediction:
     save_traj: False
     save_int_traj: False # False
-    output_dir: predictions/
+    output_dir: predictions/gpu03_v2/
     ckpt_path: ckpt/abb4_STEROIDS/abb4_STEROIDS.ckpt
 
   checkpointer:
