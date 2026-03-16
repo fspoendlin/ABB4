@@ -1,3 +1,4 @@
 # Ignore CSV files in subdirectories
 **/*.csv
 !/*.csv
+*.pdb
