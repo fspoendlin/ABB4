@@ -16,7 +16,8 @@ if __name__ == "__main__":
     try:
         train_val()
     finally:
-        wandb.finish() 
+        if wandb.run is not None:
+            wandb.finish()
         # should hopefully be called even upon SIGTERM
         # BUT wandb.finish() is known to sometimes be slow so SLURM's timeouts may be too short
         # which may send the node into drain

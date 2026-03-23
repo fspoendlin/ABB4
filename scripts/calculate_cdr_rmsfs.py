@@ -1,3 +1,32 @@
+"""Calculate per-residue CDR RMSF statistics across predicted antibody structure ensembles.
+
+For each per-target subdirectory under ``--pred_path``, loads all ``.pdb``
+files as a trajectory using MDAnalysis, aligns frames to the first structure on
+Cα atoms, and computes per-residue RMSF values for each CDR loop
+(CDRH1/2/3, CDRL1/2/3). Aggregated statistics (mean, std, median, max, min)
+per CDR are written incrementally to ``<pred_path>/cdr_rmsfs.csv``.
+
+IMGT residue ranges used (heavy and light chains share the same numbering):
+
+    CDR1: 27–38   CDR2: 56–65   CDR3: 105–117
+
+Usage
+-----
+    python scripts/calculate_cdr_rmsfs.py \\
+        --pred_path predictions_imgt/
+
+Arguments
+---------
+--pred_path : str
+    Root directory containing one subdirectory per target, each holding
+    IMGT-renumbered ``sample_*.pdb`` files.
+
+Output
+------
+``<pred_path>/cdr_rmsfs.csv``
+    CSV with one row per target and columns for each CDR loop statistic.
+"""
+
 import MDAnalysis as mda
 from MDAnalysis.analysis import rms
 import numpy as np

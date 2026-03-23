@@ -64,6 +64,9 @@ class ModelRun:
             self._data_cfg.module.loaders.num_workers = 0
         elif stage == 'sample':
             self.logger = None
+        elif self._exp_cfg.get('wandb') is None:
+            log.info("WandB logging disabled (experiment.wandb is null).")
+            self.logger = None
         else:
             self.logger = WandbLogger(**self._exp_cfg.wandb)
 

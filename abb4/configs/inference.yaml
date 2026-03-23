@@ -16,11 +16,10 @@ data:
 
   dataset:
     predict:
-        num_samples: 250  # 250        # number of samples to generate for each input sequence
-        csv_path: /ceph/opig-shared/users/spoendli/conformation_prediction/conformation_prediction/data/datasets/sabdab_scfvs_in_trainset_expressed_in_ecoli.csv
-        # /ceph/opig-shared/users/spoendli/conformation_prediction/conformation_prediction/data/datasets/sabdab_scfvs_selected_for_nmr.csv
+        num_samples: 10  # 250        # number of samples to generate for each input sequence
+        csv_path: data/example_input.csv
         pred_sampler:
-          batch_size: 75
+          batch_size: 100
 
 interpolant:
   load_dataset_csv: False
@@ -30,20 +29,9 @@ interpolant:
     num_timesteps: 100
                
 experiment:
-  num_devices: 4 #4
+  num_devices: 1 #4
   prediction:
     save_traj: False
     save_int_traj: False # False
-    output_dir: /ceph/opig-shared/projects/spoendlin-EnsemblePrediction/nmr_exp/sabdab_scfvs_in_trainset_expressed_in_ecoli/predictions_raw/
-    # /ceph/opig-shared/projects/spoendlin-EnsemblePrediction/nmr_exp/sabdab_scfvs/predictions_raw/
+    output_dir: predictions/
     ckpt_path: ckpt/abb4_STEROIDS/abb4_STEROIDS.ckpt
-
-  checkpointer:
-    dirpath: ckpt/${experiment.wandb.project}/${experiment.wandb.name}/${now:%Y-%m-%d}_${now:%H-%M-%S}
-    save_last: True
-    save_top_k: 5 #10
-    # every_n_train_steps: 1
-    every_n_epochs: null
-    save_on_train_epoch_end: False
-    monitor: valid/h_cdr3_d_mean_rmsd_sims
-    mode: min

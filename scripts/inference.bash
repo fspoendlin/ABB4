@@ -1,4 +1,24 @@
 #!/usr/bin/env bash
+# inference.bash — Launch distributed ABB4 inference via torch.distributed.run.
+#
+# Wraps abb4/experiments/inference.py with multi-GPU DDP support. Inference
+# settings (checkpoint path, input CSV, output directory, number of samples)
+# are read from abb4/configs/inference.yaml; override any value on the command
+# line by appending Hydra-style key=value arguments.
+#
+# Usage:
+#   bash scripts/inference.bash [--nproc_per_node N] [--master_port PORT] \
+#       [hydra_key=value ...]
+#
+# Options:
+#   --nproc_per_node N    Number of GPUs to use (default: 1).
+#   --master_port PORT    Port for the distributed process group (default: 29500).
+#
+# Examples:
+#   bash scripts/inference.bash --nproc_per_node 4
+#   bash scripts/inference.bash --nproc_per_node 1 \
+#       data.dataset.predict.csv_path=/data/query.csv \
+#       experiment.prediction.output_dir=/out/run1
 set -e
 
 # ------------------

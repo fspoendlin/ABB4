@@ -1,4 +1,29 @@
-'''Script to calculate CDR RMSDs for predicted antibody structure ensembles'''
+"""Calculate pairwise CDR RMSD statistics across predicted antibody structure ensembles.
+
+For each per-target subdirectory under ``--pred_path``, computes pairwise
+backbone RMSD values over all six CDR loops (CDRH1/2/3, CDRL1/2/3) using
+SPACE2. Summary statistics (mean, max, min, std) are aggregated and written
+incrementally to ``<pred_path>/cdr_rmsds.csv``.
+
+Usage
+-----
+    python scripts/calculate_cdr_rmsds.py \\
+        --pred_path predictions_imgt/ \\
+        [--n_jobs 20]
+
+Arguments
+---------
+--pred_path : str
+    Root directory containing one subdirectory per target, each holding
+    IMGT-renumbered ``sample_*.pdb`` files.
+--n_jobs : int, optional
+    Number of parallel worker processes passed to SPACE2. Default: 20.
+
+Output
+------
+``<pred_path>/cdr_rmsds.csv``
+    CSV with a multi-index (target, statistic) and one column per CDR loop.
+"""
 from SPACE2.exhaustive_clustering import get_distance_matrices
 from SPACE2.util import reg_def
 import numpy as np

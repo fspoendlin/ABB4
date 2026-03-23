@@ -1,4 +1,27 @@
-'''Script to convert predicted antibody structures to IMGT nmbering using Anarcii'''
+"""Convert predicted antibody PDB structures to IMGT numbering using Anarcii.
+
+Iterates over per-target subdirectories under ``--pred_path``, renumbers every
+``.pdb`` file found using the Anarcii antibody-numbering model, and writes the
+renumbered structures to ``--out_path`` (default: ``<pred_path>/<target>_imgt/``).
+
+Usage
+-----
+    python scripts/renumber_predictions.py \\
+        --pred_path predictions/ \\
+        --out_path  predictions_imgt/ \\
+        [--gpu]
+
+Arguments
+---------
+--pred_path : str
+    Root directory containing one subdirectory per target, each holding
+    ``sample_*.pdb`` files output by inference.
+--out_path : str, optional
+    Output root directory. If omitted, renumbered files are written next to the
+    source directory with an ``_imgt`` suffix.
+--gpu : flag
+    Run Anarcii on GPU (recommended for large batches). Defaults to CPU.
+"""
 
 # from Bio.PDB import PDBParser
 from glob import glob

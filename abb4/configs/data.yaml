@@ -19,7 +19,7 @@ data:
   dataset:                                  # {Train, Length, Fasta, Pdb}Dataset, Distributed{Train, Inference}BatchSampler classes
 
     train_val_test_pdbs:                    # common filters for train/val/test set
-      csv_path: /ceph/opig-shared/users/spoendli/conformation_prediction/IgFM/metadata/all_atom_sims_new_val_cg_test_val_metadata.csv
+      csv_path: data/localpaths/ABB3_latest_CDRsim_metadata_random.csv
       min_num_res: 0                        # set to 0 to disable
       max_num_res: 10000                    # set to 10000 to disable
       max_resolution: 3.5                   # use 3.5 for forward folding
@@ -35,7 +35,7 @@ data:
         rots_dist: ${interpolant.rots.dist}
         ensemble_size: 10 #10                    # in train gradients are computed for ensemble, use smaller size  
 
-      single_struc: False 
+      single_struc: True 
       single_struc_sampler:                   # DistributedTrainBatchSampler class
         batch_size: 10
         shuffle: True
@@ -100,7 +100,7 @@ data:
         sim_proba_sampling_mode: highest     # select frame with highest probability for test, selects the same frame for each epoch
         ot: ${interpolant.ot}
         rots_dist: ${interpolant.rots.dist}
-        ensemble_size: 30 #30              
+        ensemble_size: 10 #30              
 
       single_struc: False                      # run train-like loss computation at test time
       single_struc_sampler:                   # DistributedTrainBatchSampler class
@@ -111,7 +111,7 @@ data:
       
       ensemble: True                  # run inference-like de novo generation and compute metrics at test time
       ensemble_sampler:               # DistributedInferenceBatchSampler class
-        batch_size: 2                      # only works with batch_size=1 for now, setting ensemble_size to the largest possible value will in anycase require batch_size=1
+        batch_size: 1                      # only works with batch_size=1 for now, setting ensemble_size to the largest possible value will in anycase require batch_size=1
         shuffle: False
 
     extra_test:

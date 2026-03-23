@@ -5,8 +5,7 @@ experiment:                                 # ModelRun, FlowModule classes
   warm_start: null # path to directory that contains *config* of checkpoint to warm-start from
   load_all_states: False # False: loads only weights from checkpoint, True loads all state from checkpoint
   warm_start_weights: null
-  crash_dir:  /ceph/opig-shared/users/spoendli/conformation_prediction/IgFM/crash_dir_latest
-  # /ceph/opig-shared/users/spoendli/conformation_prediction/IgFM/crash_dir_latest                 # path to save batch info upon encountering NaN loss
+  crash_dir: null
 
   training: &training_config                # FlowModule class
     loss: tot_loss                          # in {bb_atom_loss, dist_mat_loss, auxiliary_loss, trans_loss, rots_vf_loss, se3_vf_loss, aatypes_loss, tot_loss}
@@ -57,11 +56,11 @@ experiment:                                 # ModelRun, FlowModule classes
       clashes_loss_weight: 0
       clashes_loss_t_pass: 0
 
-      rmsf_loss: chi2 # standard_mse             # loss for RMSF, in {standard_mse, chi2}
-      rmsf_loss_region: all # all               # cdrs, cdrh3 or all
-      rmsf_loss_weight: 0.05 # between 0.2 and 0.5 0.2  #0.8#0.3 # 0.3 # estimate 0.3 for same magnitude as other losses                # weight of RMSF loss in total loss
-      rmsf_loss_t_pass: 0                 # value of t after which RMSF loss is applied
-      rmsf_loss_model_variance: 0.10       # estimated model variance as a percentage of the RMSF
+      rmsf_loss: chi2 # standard_mse         # loss for RMSF, in {standard_mse, chi2}
+      rmsf_loss_region: all # all            # cdrs, cdrh3 or all
+      rmsf_loss_weight: 0 # 0.05             # weight of RMSF loss in total loss
+      rmsf_loss_t_pass: 0                    # value of t after which RMSF loss is applied
+      rmsf_loss_model_variance: 0.10         # estimated model variance as a percentage of the RMSF
       rmsf_loss_sampling_var_weight: 0 #1    # weight of sampling variance in total variance for chi2 loss
       rmsf_loss_model_var_weight: 1 #1       # weight of model variance in total variance for chi2 loss
  
@@ -95,17 +94,17 @@ experiment:                                 # ModelRun, FlowModule classes
 
   optimizer:
     which: AdamW # RAdam # AdamW                    # in {RAdam, AdamW}
-    lr: 1e-6 #1e-5 #5e-5 #5e-5 for ensemble loss # 1e-4 #1e-4 #1e-6 #1e-5 # 1e-4
+    lr: 1e-5 #1e-5 #5e-5 #5e-5 for ensemble loss # 1e-4 #1e-4 #1e-6 #1e-5 # 1e-4
     weight_decay: 1e-2 #1e-2                      # default adamw 0.01
   lr_scheduler:                             # config for learning ReduceLROnPlateau scheduler
-    use: warmup_cosine_annealing #warmup_cosine_annealing  #warmup_cosine_annealing # warmup_cosine_annealing_no_restart #cosine_annealing_no_restart #cosine_annealing                   # use scheduler False, reduce_on_plateau, cosine_annealing, cosine_annealing_no_restart
+    use: warmup_cosine_annealing_no_restart #warmup_cosine_annealing  #warmup_cosine_annealing # warmup_cosine_annealing_no_restart #cosine_annealing_no_restart #cosine_annealing                   # use scheduler False, reduce_on_plateau, cosine_annealing, cosine_annealing_no_restart
     # factor: 0.2 # for reduce_on_plateau
     # patience: 3  # for reduce_on_plateau
     # monitor: ${experiment.checkpointer.monitor}  # for reduce_on_plateau
-    # T_max: 100  # for cosine_annealing_no_restart, warmup_cosine_annealing_no_restart
-    T_0: 75 #70 #75 #50 #1000 #50 #1000  # for cosine_annealing         # try 50 if training with single struc sampler, 1000 for ensemble sampler
-    T_mult: 1 # for cosine_annealing
-    eta_min: 1e-7 #1e-6 #5e-6 #5e-6 #1e-5 #1e-7 #1e-6 # 1e-5 # for cosine_annealing, cosine_annealing_no_restart and warmup_cosine_annealing_no_restart
+    T_max: 100  # for cosine_annealing_no_restart, warmup_cosine_annealing_no_restart
+    # T_0: 75 #70 #75 #50 #1000 #50 #1000  # for cosine_annealing         # try 50 if training with single struc sampler, 1000 for ensemble sampler
+    # T_mult: 1 # for cosine_annealing
+    eta_min: 1e-6 #1e-6 #5e-6 #5e-6 #1e-5 #1e-7 #1e-6 # 1e-5 # for cosine_annealing, cosine_annealing_no_restart and warmup_cosine_annealing_no_restart
     warmup_start_factor: 0.01 # for warmup_cosine_annealing_no_restart
     warmup_end_factor: 1.0 # for warmup_cosine_annealing_no_restart
     warmup_epochs: 10 #5  # for warmup_cosine_annealing_no_restart
@@ -124,16 +123,16 @@ experiment:                                 # ModelRun, FlowModule classes
     check_val_every_n_epoch: 1 #3 #10 #50 # 1         # probably not necessary to validate every epoch
     # val_check_interval: 1000              # validate every k batches of size batch_size (pre-gradient cumulation != gradient steps = global_step) 
     accumulate_grad_batches: 5 #5 #20 #10#4 #2 #2              # accumulate gradient over k * num_devices batches
-  wandb:
-    name: ${data.task}_mAbs_${now:%-m-%d-%H-%M}
-    save_dir: ./logs
-    project: "ab_folding"
-    entity: "f-spoendlin"
-    group: "ensemble" # "ABB3"
-    save_code: True
-    tags: []
+  wandb: null # set to null (~) to disable WandB logging
+    # name: ${now:%Y-%m-%d}_${now:%H-%M-%S}
+    # save_dir: ./logs
+    # project: "project"
+    # entity: "username"
+    # group: "group_name"
+    # save_code: True
+    # tags: []
   checkpointer:
-    dirpath: ckpt/${experiment.wandb.project}/${experiment.wandb.name}/${now:%Y-%m-%d}_${now:%H-%M-%S}
+    dirpath: ckpt/${now:%Y-%m-%d}_${now:%H-%M-%S}
     save_last: True
     save_top_k: 5 #5 #10
     # every_n_train_steps: 1
