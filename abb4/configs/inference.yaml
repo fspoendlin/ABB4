@@ -4,34 +4,34 @@ defaults:
   - model
   - experiment
   - _self_
-  
+
 # override/add the following config entries
 data:
 
   module:
     inference_only_mode: True
-    loaders:                                # DataLoader class
-      num_workers: 10                       # per dataloader (one dataloader per GPU, train, val and test)
-      prefetch_factor: 10             # number of batches to prefetch
+    loaders:                              # DataLoader settings
+      num_workers: 10                     # number of worker processes per dataloader (one dataloader per GPU)
+      prefetch_factor: 10                 # number of batches to prefetch per worker to keep GPU fed
 
   dataset:
     predict:
-        num_samples: 10  # 250        # number of samples to generate for each input sequence
-        csv_path: data/example_input.csv
+        num_samples: 100                  # number of conformational samples to generate per input sequence
+        csv_path: data/example_input.csv  # path to input CSV (columns: sequence + identifier)
         pred_sampler:
-          batch_size: 100
+          batch_size: 100                 # batch size (limited by GPU memory)
 
 interpolant:
-  load_dataset_csv: False
-  csv_path: null
-  max_resolution: null
+  load_dataset_csv: False                 # do not load a training/validation CSV at inference time
+  csv_path: null                          # path to dataset CSV (null = unused at inference)
+  max_resolution: null                    # maximum structure resolution filter (null = no filter at inference)
   sampling:
-    num_timesteps: 100
-               
+    num_timesteps: 100                    # number of ODE integration steps from noise (t=1) to structure (t=0); more steps = higher quality but slower
+
 experiment:
-  num_devices: 1 #4
+  num_devices: 1                          # number of GPUs to use for distributed inference
   prediction:
-    save_traj: False
-    save_int_traj: False # False
-    output_dir: predictions/
-    ckpt_path: ckpt/abb4_STEROIDS/abb4_STEROIDS.ckpt
+    save_traj: False                      # whether to save the full denoising trajectory (clean backbone at each timestep)
+    save_int_traj: False                  # whether to save the intermediate/noisy trajectory at each timestep
+    output_dir: predictions/              # directory where output PDB files are written (<output_dir>/<pdb_name>/sample_<i>.pdb)
+    ckpt_path: ckpt/abb4_STEROIDS/abb4_STEROIDS_slim.ckpt  # path to the model checkpoint to load for inference
