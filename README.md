@@ -1,6 +1,3 @@
-<p align="center">
-  <img src="media/ABB4_logo.png" alt="ABB4-STEROIDS logo" width="400" style="background-color: white; padding: 10px;"/>
-</p>
 
 # ABB4-STEROIDS: Antibody Conformational Ensemble Prediction
 
