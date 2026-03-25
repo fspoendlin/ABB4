@@ -1,129 +1,123 @@
-experiment:                                 # ModelRun, FlowModule classes
+experiment:
   debug: False
-  num_devices: 4 # 2                        
-  warm_start_cfg_override: False # False #True           # if True, will override this config with the one from the checkpoint
-  warm_start: null # path to directory that contains *config* of checkpoint to warm-start from
-  load_all_states: False # False: loads only weights from checkpoint, True loads all state from checkpoint
-  warm_start_weights: null
-  crash_dir: null
+  num_devices: 1                            # number of GPUs for DDP training
+  warm_start_cfg_override: False            # if True, override this config with the checkpoint config
+  warm_start: null                          # path to directory containing trvalte_config.yaml for warm-start
+  load_all_states: False                    # False: load weights only; True: restore full training state
+  warm_start_weights: null                  # path to checkpoint .ckpt file for warm-start
+  crash_dir: null                           # directory to dump debug info on crash
 
-  training: &training_config                # FlowModule class
-    loss: tot_loss                          # in {bb_atom_loss, dist_mat_loss, auxiliary_loss, trans_loss, rots_vf_loss, se3_vf_loss, aatypes_loss, tot_loss}
-                                            # effected by task, 'fwd_fold' removes aa_types loss from total loss, 'inv_fold' removes structural losses from total loss
+  training: &training_config
+    loss: tot_loss                          # loss term to optimise; tot_loss is the weighted sum of all active terms
     training_losses:
       crash_dir: ${experiment.crash_dir}
-      t_normalize_clip: 0.9                   # clip loss normaliser 1/(1-min(t,0.9))
-      bb_atom_scale: 0.1 # 1 change to 1 and adapt loss weights                       # factor scaling coordinates before loss calculations (coords are in A)
-      trans_scale: 0.1 # 1 change to 1 and adapt loss weights                       # factor scaling translations before loss calculations (trans are in A)
-      
-      # weight loss by time step
-      loss_t_weighting: null #exp #null                    # in {null, exp}, works based on t_trans, do no use in combination with different train_schedule for rots and trans
-      loss_t_weighting_exp_rate: 1.39           # 1.39 (twice weight for 1st than 3rd interval), 2.20 (three times)
+      t_normalize_clip: 0.9                 # clip loss normaliser 1/(1-min(t, 0.9))
+      bb_atom_scale: 0.1                    # scale factor applied to coordinates before loss (coords in Å)
+      trans_scale: 0.1                      # scale factor applied to translations before loss (translations in Å)
 
-      # flow losses
-      translation_loss_weight: 8 # 4.0          # 2 in FrameFlow
-      rotation_loss_weight: 0.8 # 1.6
+      # time-step loss weighting
+      loss_t_weighting: null                # in {null, exp}; null disables; exp upweights early timesteps
+      loss_t_weighting_exp_rate: 1.39       # exp rate; 1.39 gives 2× weight to first vs third interval
+
+      # flow matching losses
+      translation_loss_weight: 8
+      rotation_loss_weight: 0.8
       aatypes_loss_weight: 0
-      aatypes_loss_use_likelihood_weighting: False # apply 1/(1-cat_t) weight to cross-entropy; compare Multiflow App. C.2 (Weighted Cross Entropy) and C.2.1 for Masking Interpolant Special Case
-      
-      # aux losses
+      aatypes_loss_use_likelihood_weighting: False  # apply 1/(1-cat_t) weight to cross-entropy
+
+      # auxiliary structural losses (disabled by default)
       bb_loss_weight: 0
-      bb_loss_t_pass: 0                     # only based on t trans
+      bb_loss_t_pass: 0                     # only apply loss for t > t_pass
 
       pair_loss_weight: 0
       pair_loss_t_pass: 0
-      
-      A_fape_loss_weight: 0.08 # 0.04 # 0.08              # ~0.02 for balanced magnitude
+
+      A_fape_loss_weight: 0.08              # all-atom FAPE loss
       A_fape_loss_t_pass: 0
       cdr_fw_fape_weight: 1
 
-      BB_fape_loss_weight: 0 # 0.16 # 0.16              # ~0.03 for balanced magnitude
+      BB_fape_loss_weight: 0                # backbone-only FAPE loss
       BB_fape_loss_t_pass: 0
-      BB_fape_cdr_weighting: True          # use CDR weigthed BB loss
+      BB_fape_cdr_weighting: True           # upweight CDR residues in BB FAPE loss
 
-      torsion_loss_weight: 0.4                # ~0.2 for balanced magnitude
+      torsion_loss_weight: 0.4
       torsion_loss_t_pass: 0
 
-      torsion_norm_loss_weight: 0.02      # ~0.2 for balanced magnitude but use much smaller, 0.02 in AF2
+      torsion_norm_loss_weight: 0.02        # penalty for non-unit torsion vectors
       torsion_norm_t_pass: 0
 
-      dist_loss_weight: 0                   # ~2 for balanced magnitude
+      dist_loss_weight: 0
       dist_loss_t_pass: 0
 
-      angle_loss_weight: 0                  # ~5 for balanced magnitude  
+      angle_loss_weight: 0
       angle_loss_t_pass: 0
 
       clashes_loss_weight: 0
       clashes_loss_t_pass: 0
 
-      rmsf_loss: chi2 # standard_mse         # loss for RMSF, in {standard_mse, chi2}
-      rmsf_loss_region: all # all            # cdrs, cdrh3 or all
-      rmsf_loss_weight: 0 # 0.05             # weight of RMSF loss in total loss
-      rmsf_loss_t_pass: 0                    # value of t after which RMSF loss is applied
-      rmsf_loss_model_variance: 0.10         # estimated model variance as a percentage of the RMSF
-      rmsf_loss_sampling_var_weight: 0 #1    # weight of sampling variance in total variance for chi2 loss
-      rmsf_loss_model_var_weight: 1 #1       # weight of model variance in total variance for chi2 loss
- 
+      # RMSF ensemble loss
+      rmsf_loss: chi2                       # in {standard_mse, chi2}
+      rmsf_loss_region: all                 # in {cdrs, cdrh3, all}
+      rmsf_loss_weight: 0                   # set > 0 to enable
+      rmsf_loss_t_pass: 0                   # only apply loss for t > t_pass
+      rmsf_loss_model_variance: 0.10        # estimated model variance as a fraction of RMSF
+      rmsf_loss_sampling_var_weight: 0      # weight of sampling variance in chi2 denominator
+      rmsf_loss_model_var_weight: 1         # weight of model variance in chi2 denominator
+
   validation:
-    <<: *training_config                    # inherit all training settings
+    <<: *training_config
     step_validation: True
-    sample_validation: True                 # validation by sampling entire trajectory
-    extra_validation: True                  # use extra validation set (cg val set for aa training)
+    sample_validation: True                 # run full reverse-diffusion sampling during validation
+    extra_validation: False                 # use an additional validation set (e.g. CG set for AA training)
     sample_every_n_epochs: 1000000
-    save_sampled_strucs: False              # save sampled structures as pdb and pkl files
+    save_sampled_strucs: False              # save sampled structures as PDB and pkl files
     save_traj: False
     save_int_traj: False
+    training_losses: ${experiment.training.training_losses}
 
-    training_losses: ${experiment.training.training_losses}  # use same loss settings as training
-
-  testing:                                  # FlowModule class
-    <<: *training_config                    # inherit all training settings
-    ckpt_name: last.ckpt                    # config to load, located in checkpointer.dirpath
+  testing:
+    <<: *training_config
+    ckpt_name: last.ckpt                    # checkpoint filename to load from checkpointer.dirpath
     step_validation: True
-    sample_validation: True                 # validation by sampling entire trajectory
-    extra_validation: False                  # use extra test set (cg test set for aa training)
-    save_sampled_strucs: False              # save sampled structures as pdb and pkl files
+    sample_validation: True                 # run full reverse-diffusion sampling during testing
+    extra_validation: False                 # use an additional test set
+    save_sampled_strucs: False              # save sampled structures as PDB and pkl files
+    training_losses: ${experiment.training.training_losses}
 
-    training_losses: ${experiment.training.training_losses}  # use same loss settings as training
-  
   prediction:
     save_traj: null
     save_int_traj: null
-    output_dir: null
-    ckpt_path: null
+    output_dir: null                        # directory to write generated PDB files
+    ckpt_path: null                         # path to checkpoint to use for inference
 
   optimizer:
-    which: AdamW # RAdam # AdamW                    # in {RAdam, AdamW}
-    lr: 1e-5 #1e-5 #5e-5 #5e-5 for ensemble loss # 1e-4 #1e-4 #1e-6 #1e-5 # 1e-4
-    weight_decay: 1e-2 #1e-2                      # default adamw 0.01
-  lr_scheduler:                             # config for learning ReduceLROnPlateau scheduler
-    use: warmup_cosine_annealing_no_restart #warmup_cosine_annealing  #warmup_cosine_annealing # warmup_cosine_annealing_no_restart #cosine_annealing_no_restart #cosine_annealing                   # use scheduler False, reduce_on_plateau, cosine_annealing, cosine_annealing_no_restart
-    # factor: 0.2 # for reduce_on_plateau
-    # patience: 3  # for reduce_on_plateau
-    # monitor: ${experiment.checkpointer.monitor}  # for reduce_on_plateau
-    T_max: 100  # for cosine_annealing_no_restart, warmup_cosine_annealing_no_restart
-    # T_0: 75 #70 #75 #50 #1000 #50 #1000  # for cosine_annealing         # try 50 if training with single struc sampler, 1000 for ensemble sampler
-    # T_mult: 1 # for cosine_annealing
-    eta_min: 1e-6 #1e-6 #5e-6 #5e-6 #1e-5 #1e-7 #1e-6 # 1e-5 # for cosine_annealing, cosine_annealing_no_restart and warmup_cosine_annealing_no_restart
-    warmup_start_factor: 0.01 # for warmup_cosine_annealing_no_restart
-    warmup_end_factor: 1.0 # for warmup_cosine_annealing_no_restart
-    warmup_epochs: 10 #5  # for warmup_cosine_annealing_no_restart
+    which: AdamW                            # in {RAdam, AdamW}
+    lr: 1e-5
+    weight_decay: 1e-2
+
+  lr_scheduler:
+    use: warmup_cosine_annealing_no_restart # in {false, reduce_on_plateau, cosine_annealing, cosine_annealing_no_restart, warmup_cosine_annealing_no_restart}
+    T_max: 100                              # period for cosine_annealing_no_restart / warmup_cosine_annealing_no_restart
+    eta_min: 1e-6                           # minimum LR at the end of cosine schedule
+    warmup_start_factor: 0.01              # initial LR = lr * warmup_start_factor
+    warmup_end_factor: 1.0                 # LR at end of warmup = lr * warmup_end_factor
+    warmup_epochs: 10
     interval: epoch
     frequency: 1
     strict: False
+
   trainer:
     overfit_batches: 0                      # set to non-zero to sanity-check model capacity
-    min_epochs: 1                           # prevents early stopping
+    min_epochs: 1
     max_epochs: 5000
     accelerator: gpu
     log_every_n_steps: 1
-    deterministic: False                    # allow PyTorch to use non-deterministic algorithms
-    strategy: ddp_find_unused_parameters_true  # ddp_find_unused_parameters_true / ddp if removeal of aatypes loss
-    # val_check_interval: 0.1
-    check_val_every_n_epoch: 1 #3 #10 #50 # 1         # probably not necessary to validate every epoch
-    # val_check_interval: 1000              # validate every k batches of size batch_size (pre-gradient cumulation != gradient steps = global_step) 
-    accumulate_grad_batches: 5 #5 #20 #10#4 #2 #2              # accumulate gradient over k * num_devices batches
-  wandb: null # set to null (~) to disable WandB logging
+    deterministic: False                    # allow non-deterministic CUDA ops for performance
+    strategy: ddp_find_unused_parameters_true
+    check_val_every_n_epoch: 1
+    accumulate_grad_batches: 5              # effective batch size = batch_size * num_devices * accumulate_grad_batches
+
+  wandb: null                               # set to null to disable W&B logging
     # name: ${now:%Y-%m-%d}_${now:%H-%M-%S}
     # save_dir: ./logs
     # project: "project"
@@ -131,18 +125,12 @@ experiment:                                 # ModelRun, FlowModule classes
     # group: "group_name"
     # save_code: True
     # tags: []
+
   checkpointer:
     dirpath: ckpt/${now:%Y-%m-%d}_${now:%H-%M-%S}
     save_last: True
-    save_top_k: 5 #5 #10
-    # every_n_train_steps: 1
+    save_top_k: 5
     every_n_epochs: 1
     save_on_train_epoch_end: False
-    monitor: valid/h_cdr3_d_mean_rmsd_sims
+    monitor: valid/h_cdr3_d_mean_rmsd_sims  # checkpoint saved on minimum CDR H3 RMSD
     mode: min
-  # early_stopping:
-  #   monitor: valid/bb_rmsd
-  #   min_delta: 0.0
-  #   patience: 1000
-  #   mode: min
-  #   log_rank_zero_only: True

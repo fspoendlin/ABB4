@@ -5,24 +5,24 @@ defaults:
   - experiment
   - _self_
 
-experiment:                                 # ModelRun, FlowModule classes
-  num_devices: 4                            # max number of GPUs to use, if available
-  warm_start: null                          # path to checkpoint to test (required)
+experiment:
+  num_devices: 4
+  warm_start: null                          # path to checkpoint directory to test (required)
   debug: False
 
   checkpointer:
-    dirpath: null                           # filled from warm_start checkpoint dir
+    dirpath: null                           # filled automatically from warm_start checkpoint directory
 
   validation:
     save_traj: False
     save_int_traj: False
 
-  testing:                                  # FlowModule class
-    ckpt_name: last.ckpt                    # checkpoint filename in checkpointer.dirpath
+  testing:
+    ckpt_name: last.ckpt                    # checkpoint filename within checkpointer.dirpath
     step_validation: True
-    sample_validation: True                 # validation by sampling entire trajectory
-    extra_validation: False
-    save_sampled_strucs: False
+    sample_validation: True                 # run full reverse-diffusion sampling during testing
+    extra_validation: False                 # use an additional test set
+    save_sampled_strucs: False              # save sampled structures as PDB and pkl files
 
   prediction:
     save_traj: null
@@ -30,30 +30,29 @@ experiment:                                 # ModelRun, FlowModule classes
     output_dir: null
     ckpt_path: null
 
-
 data:
-  dataset:                                  # {Train, Length, Fasta, Pdb}Dataset, Distributed{Train, Inference}BatchSampler classes
-    train_val_test_pdbs:                    # common filters for train/val/test set
-      csv_path: null
+  dataset:
+    train_val_test_pdbs:
+      csv_path: null                        # path to test metadata CSV (required)
     test:
       gen_extent: ${data.gen_extent}
       gen_regions: ${data.gen_regions}
 
-      trainlike: True                      # run train-like loss computation at test time
-      trainlike_sampler:                   # DistributedTrainBatchSampler class
+      trainlike: True                       # run train-like loss computation at test time
+      trainlike_sampler:
         batch_size: 10
         shuffle: False
         num_struc_samples: null
         drop_last: False
 
-      inferencelike: False                  # run inference-like de novo generation and compute metrics at test time
-      inferencelike_sampler:               # DistributedInferenceBatchSampler class
-        batch_size: 1                      # choose as high as GPU RAM allows
+      inferencelike: False                  # run sampling-based evaluation at test time
+      inferencelike_sampler:
+        batch_size: 1                       # choose as high as GPU memory allows
         shuffle: False
 
 interpolant:
   sampling:
-    num_timesteps: 100
+    num_timesteps: 100                      # ODE steps during sampling; 100 for full accuracy
   rots:
     sample_schedule: linear
   trans:

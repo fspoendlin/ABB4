@@ -1,6 +1,15 @@
+<p align="center">
+  <img src="media/ABB4_logo.png" alt="ABB4-STEROIDS logo" width="400" style="background-color: white; padding: 10px;"/>
+</p>
+
 # ABB4-STEROIDS: Antibody Conformational Ensemble Prediction
 
 ABB4-STEROIDS is a generative structure prediction model for sampling **conformational ensembles** of antibodies rather than a single static structure. Conformational flexibility is central to antibody behavior, but exhaustive molecular dynamics (MD) is often expensive and many deep-learning methods focus on one structure at a time. This repository provides workflows for training, testing, and inference, built around large-scale simulation data (coarse-grained and all-atom trajectories), using flow matching on SE(3) to generate diverse antibody conformations.
+
+<p align="center">
+  <img src="media/intro_fig_4phases.png" alt="ABB4-STEROIDS overview" width="900"/>
+</p>
+<p align="center"><em>Overview of the ABB4 models. a) ABB4-STEROIDS generates an ensemble of antibody structures for a given input sequence. b) Summary of the four-stage training procedure. c) Illustration of the model architecture. d) Diagram providing an overview of the flow matching methodology. H: single/node representation. Z: pair/edge representation. T: backbone frames. χ: torsion angles. Subscripts denote the flow matching time step.</em></p>
 
 ## Table of Contents
 - [Installation](#installation)
@@ -153,101 +162,35 @@ python scripts/calculate_cdr_rmsfs.py \
 
 ## Training Models
 
-### 1. Edit the training configs
+### 1. Prepare training data
 
-**Data** — `abb4/configs/data.yaml`:
-```yaml
-data:
-  dataset:
-    train_val_test_pdbs:
-      csv_path: /path/to/metadata.csv     # training/validation/test metadata
-```
-
-**Warm-start (optional)** — `abb4/configs/experiment.yaml`:
-```yaml
-experiment:
-  warm_start: /path/to/checkpoint/dir     # directory containing trvalte_config.yaml
-  warm_start_weights: /path/to/checkpoint/dir/epoch=N.ckpt
-  warm_start_cfg_override: true
-```
-
-**Checkpoints & logging** — `abb4/configs/experiment.yaml`:
-```yaml
-experiment:
-  checkpointer:
-    dirpath: /path/to/save/checkpoints
-  logger:
-    use: wandb                            # set to null to disable W&B
-    project: ab_folding
-    group: ensemble
-```
-
-### 2. Run training
+**Create `.pkl` files from PDB structures** using the preprocessing script:
 
 ```bash
-python abb4/experiments/training_validation.py
+python abb4/data/preproc/process_ab_pdb_files.py
 ```
 
-Override any config value on the command line:
+This processes raw antibody PDB files into the pickle format expected by the dataloader.
+
+**Create a metadata CSV** pointing to those `.pkl` files. Template CSVs with the expected columns and format are provided in `data/`.
+
+### 2. Edit the training config
+
+Open `abb4/configs/data.yaml` and `abb4/configs/experiment.yaml` and set the following key parameters:
+
+| Parameter | Config file | Key | Description |
+|-----------|------------|-----|-------------|
+| Training data CSV | `data.yaml` | `data.dataset.train_val_test_pdbs.csv_path` | Path to your metadata CSV |
+| Batch size | `data.yaml` | `data.module.loaders.train.single_struc_sampler.batch_size` | Per-GPU batch size; reduce if OOM |
+| Number of GPUs | `experiment.yaml` | `experiment.num_devices` | Number of GPUs for DDP training |
+| W&B logging | `experiment.yaml` | `experiment.wandb` | Set project/group or disable logging |
+
+### 3. Run training
+
+Set `--nproc_per_node` to the number of GPUs you wish to use.
+
 ```bash
-python abb4/experiments/training_validation.py \
-  data.dataset.train_val_test_pdbs.csv_path=/new/data.csv \
-  experiment.num_devices=2
-```
-
-### 3. Key training parameters
-
-| Parameter | Config file | Key | Default | Effect |
-|-----------|------------|-----|---------|--------|
-| Training data CSV | `data.yaml` | `data.dataset.train_val_test_pdbs.csv_path` | — | Training/val/test metadata |
-| Number of GPUs | `experiment.yaml` | `experiment.num_devices` | 4 | GPUs for DDP training |
-| Learning rate | `experiment.yaml` | `experiment.optimizer.lr` | 1e-6 | Main LR |
-| Weight decay | `experiment.yaml` | `experiment.optimizer.weight_decay` | 1e-2 | AdamW regularisation |
-| LR scheduler | `experiment.yaml` | `experiment.lr_scheduler.use` | `warmup_cosine_annealing` | Scheduler type |
-| Max epochs | `experiment.yaml` | `experiment.trainer.max_epochs` | 5000 | Training budget |
-| Gradient accumulation | `experiment.yaml` | `experiment.trainer.accumulate_grad_batches` | 5 | Effective batch multiplier |
-| Train batch size | `data.yaml` | `data.module.loaders.batch_size` | 10 | Per-GPU, single structures |
-| Val ensemble size | `data.yaml` | `data.dataset.val.ensemble_size` | 50 | Structures stacked for val |
-| Checkpoint metric | `experiment.yaml` | `experiment.checkpointer.monitor` | `valid/h_cdr3_d_mean_rmsd_sims` | Saved on min CDR H3 RMSD |
-| Translation loss weight | `experiment.yaml` | `experiment.training.training_losses.translation_loss_weight` | 8.0 | SE(3) translation VF |
-| Rotation loss weight | `experiment.yaml` | `experiment.training.training_losses.rotation_loss_weight` | 0.8 | SO(3) rotation VF |
-| FAPE loss weight | `experiment.yaml` | `experiment.training.training_losses.A_fape_loss_weight` | 0.08 | All-atom FAPE |
-| Torsion loss weight | `experiment.yaml` | `experiment.training.training_losses.torsion_loss_weight` | 0.4 | Backbone/side-chain torsions |
-| RMSF loss weight | `experiment.yaml` | `experiment.training.training_losses.rmsf_loss_weight` | 0.05 | Ensemble flexibility |
-| Optimal transport | `interpolant.yaml` | `interpolant.ot.use_ot` | true | OT noise matching |
-| DataLoader workers | `data.yaml` | `data.module.loaders.num_workers` | 10 | Increase for fast storage |
-
-### 4. Outputs
-
-```
-<checkpointer.dirpath>/
-  epoch=N-step=M.ckpt        # model checkpoints (top-5 by CDR H3 RMSD)
-  last.ckpt                  # always-updated latest checkpoint
-  trvalte_config.yaml        # full config snapshot (used for warm-start)
-outputs/                     # Hydra run artifacts
-lightning_logs/              # Lightning progress logs
-wandb/                       # W&B run data (if enabled)
-```
-
----
-
-## Configuration Reference
-
-All configs are in `abb4/configs/` and use [Hydra](https://hydra.cc/). The file `training.yaml` composes the others as defaults.
-
-| File | Purpose |
-|------|---------|
-| `training.yaml` | Top-level training composition |
-| `data.yaml` | Dataset paths, splits, batching, OT |
-| `model.yaml` | Architecture: embedding dims, IPA blocks, heads, dropout |
-| `interpolant.yaml` | Flow matching: noise schedule, OT distance, sampling steps |
-| `experiment.yaml` | Optimizer, scheduler, loss weights, trainer, logging, checkpointing |
-| `inference.yaml` | Inference overrides: checkpoint, input/output paths, num_samples |
-| `testing.yaml` | Test-time overrides: checkpoint dir, test CSV |
-
-**Hydra CLI syntax** — override any dotted config key:
-```bash
-python abb4/experiments/training_validation.py key1=value1 key2=value2
+python -W ignore -m torch.distributed.run --nproc_per_node=<num_gpus> --master_port=12355 abb4/experiments/training_validation.py -cn training
 ```
 
 ---
@@ -277,4 +220,7 @@ ABB4/
 
 See `LICENSE` for full terms.
 
-If you use ABB4-STEROIDS in your work, please cite the associated manuscript and this repository.
+If you use ABB4-STEROIDS in your work, please cite the associated manuscript.
+
+
+This repository builds on the [FrameFlow](https://github.com/microsoft/protein-frame-flow) codebase.
