@@ -21,6 +21,10 @@
 #       experiment.prediction.output_dir=/out/run1
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${REPO_ROOT}"
+
 # ------------------
 # Defaults
 # ------------------

@@ -13,8 +13,8 @@ ABB4-STEROIDS is a generative structure prediction model for sampling **conforma
 - [Running Inference](#running-inference)
 - [Analysis](#post-processing--analysis)
 - [Training Models](#training-models)
-- [Configuration Reference](#configuration-reference)
 - [Repository Layout](#repository-layout)
+- [Citation](#citation)
 ---
 
 ## Installation
@@ -213,9 +213,7 @@ ABB4/
 
 ---
 
-## License & Citation
-
-See `LICENSE` for full terms.
+## Citation
 
 If you use ABB4-STEROIDS in your work, please cite the associated manuscript.
 

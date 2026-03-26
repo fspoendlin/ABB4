@@ -18,6 +18,10 @@
 #   pip install torch==2.8.0 --index-url https://download.pytorch.org/whl/<CUDA_TAG>
 #   pip install torch-scatter -f https://data.pyg.org/whl/torch-2.8.0+<CUDA_TAG>.html
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${REPO_ROOT}"
+
 conda create -y -n abb4_env python=3.10
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate abb4_env
