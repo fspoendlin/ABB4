@@ -57,6 +57,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 # ------------------
+# Activate conda environment
+# ------------------
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate abb4_env
+
+# ------------------
 # Run inference
 # ------------------
 python -W ignore -m torch.distributed.run \

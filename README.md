@@ -130,6 +130,7 @@ bash scripts/inference.bash --nproc_per_node 1
 Convert predicted PDBs to standard IMGT antibody numbering:
 
 ```bash
+conda activate abb4_env
 python scripts/renumber_predictions.py \
   --pred_path /path/to/output/dir \
   --out_path /path/to/output/dir_imgt \
@@ -142,6 +143,8 @@ python scripts/renumber_predictions.py \
 Scripts are provided to perform preliminary analysis of the predicted ensembles. RMSF and RMSD values can be calculated:
 
 ```bash
+conda activate abb4_env
+
 # Calculate CDR RMSD statistics across ensemble
 python scripts/calculate_cdr_rmsds.py \
   --pred_path /path/to/output/dir_imgt \
