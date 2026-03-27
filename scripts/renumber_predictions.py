@@ -131,6 +131,7 @@ def main(pred_path, out_path, gpu=False):
 
     dirs = [d for d in glob(f"{pred_path}/*") if os.path.isdir(d)]
     print(f"Found {len(dirs)} directories to process.")
+    
     for dir in dirs:
 
         if out_path:

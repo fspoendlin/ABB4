@@ -11,22 +11,24 @@ data:
   module:
     inference_only_mode: True
     loaders:                              # DataLoader settings
-      num_workers: 10                     # number of worker processes per dataloader (one dataloader per GPU)
+      num_workers: 10                     # CPU workers for data loading; set to: (number of available CPUs)/(number of GPUs)
       prefetch_factor: 10                 # number of batches to prefetch per worker to keep GPU fed
 
   dataset:
     predict:
         num_samples: 100                  # number of conformational samples to generate per input sequence
-        csv_path: data/example_input.csv  # path to input CSV (columns: sequence + identifier)
+        csv_path: data/example_input.csv  # path to input CSV
         pred_sampler:
-          batch_size: 100                 # batch size (limited by GPU memory)
+          batch_size: 25                   # increase to match your GPU memory, set to: ~GPU mem in GB * 0.8
 
 interpolant:
   load_dataset_csv: False                 # do not load a training/validation CSV at inference time
   csv_path: null                          # path to dataset CSV (null = unused at inference)
   max_resolution: null                    # maximum structure resolution filter (null = no filter at inference)
   sampling:
-    num_timesteps: 100                    # number of ODE integration steps from noise (t=1) to structure (t=0); more steps = higher quality but slower
+    num_timesteps: 50                     # ODE steps during inference
+                                          # 100 matches publication results; 50 gives idenitcal accuracy with ~2x speedup
+                                          # reduce to 20-10 for faster inference with some drop in performance
 
 experiment:
   num_devices: 1                          # number of GPUs to use for distributed inference

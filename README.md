@@ -21,6 +21,8 @@ ABB4-STEROIDS is a generative structure prediction model for sampling **conforma
 
 **Requirements**: Conda, Python 3.10, CUDA >= 12.6.
 
+> **Note:** All scripts must be run from the repository root (`ABB4/`), not from `ABB4/scripts/`.
+
 ```bash
 bash scripts/install.bash
 ```
@@ -73,19 +75,20 @@ Open `abb4/configs/inference.yaml` and set the following key parameters:
 data:
   module:
     loaders:
-      num_workers: 10           # CPU workers for data loading; set to number of available CPUs if lower
+      num_workers: 5                 # CPU workers for data loading; set to: (number of available CPUs)/(number of GPUs)
 
   dataset:
     predict:
       csv_path: /path/to/input.csv   # path to your input CSV (created above)
-      num_samples: 100               # number of structure to sample per antibody
+      num_samples: 100               # number of conformational samples to generate per input sequence
       pred_sampler:
-        batch_size: 100              # recommended for A100 (80GB), reduce if required
+        batch_size: 25               # increase to match your GPU memory, set to: ~GPU mem in GB * 0.8
 
 interpolant:
   sampling:
-    num_timesteps: 100               # ODE steps during inference
-                                     # 100 matches publication accuracy; 50 gives idenitcal accuracy with ~2x speedup
+    num_timesteps: 50                # ODE steps during inference
+                                     # 100 matches publication results; 50 gives idenitcal accuracy with ~2x speedup
+                                     # reduce to 20-10 for faster inference with some drop in performance
 
 experiment:
   num_devices: 1                     # number of GPUs to use
@@ -104,7 +107,7 @@ experiment:
 
 ### 3. Run inference
 
-Set `--nproc_per_node` to match `experiment.num_devices` in the config.
+Set `--nproc_per_node` to match `experiment.num_devices` in the config. Run from the repository root (`ABB4/`).
 
 ```bash
 # Multi-GPU

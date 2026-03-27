@@ -8,7 +8,7 @@
 #
 # Requirements:
 #   - Conda (Miniconda or Anaconda)
-#   - CUDA driver >= 12.6 (or no GPU for a CPU-only install)
+#   - CUDA driver >= 12.6 (required — script aborts if nvidia-smi is not found)
 #
 # Usage:
 #   bash scripts/install.bash
@@ -52,8 +52,8 @@ if command -v nvidia-smi &>/dev/null; then
     fi
     echo "Selected wheel tag: $CUDA_TAG (best match for CUDA $CUDA_VERSION)"
 else
-    CUDA_TAG="cpu"
-    echo "WARNING: nvidia-smi not found — installing CPU-only PyTorch"
+    echo "ERROR: nvidia-smi not found — CUDA is required to run ABB4. Aborting."
+    exit 1
 fi
 
 echo ""
@@ -69,7 +69,9 @@ fi
 
 pip install torch==2.8.0 --index-url https://download.pytorch.org/whl/${CUDA_TAG}
 pip install torch-scatter -f https://data.pyg.org/whl/torch-2.8.0+${CUDA_TAG}.html
-conda install -y -c conda-forge biopython matplotlib numpy pandas pyyaml scipy seaborn dm-tree tqdm wandb
-pip install mdtraj pytorch-lightning hydra-core GPUtil ml-collections lightning anarcii POT
+# conda install -y -c conda-forge biopython matplotlib numpy pandas pyyaml scipy seaborn dm-tree tqdm wandb
+# pip install mdtraj pytorch-lightning hydra-core GPUtil ml-collections lightning anarcii POT
+pip install mdtraj pytorch-lightning hydra-core GPUtil ml-collections lightning anarcii POT biopython matplotlib numpy pandas scipy seaborn tqdm wandb dm-tree PyYAML MDAnalysis
+pip install git+https://github.com/oxpig/SPACE2.git
 pip install .
 conda deactivate
