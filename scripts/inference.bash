@@ -21,10 +21,6 @@
 #       experiment.prediction.output_dir=/out/run1
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-cd "${REPO_ROOT}"
-
 # ------------------
 # Defaults
 # ------------------
@@ -65,6 +61,7 @@ conda activate abb4_env
 # ------------------
 # Run inference
 # ------------------
+export KMP_DUPLICATE_LIB_OK=TRUE
 python -W ignore -m torch.distributed.run \
   --nproc_per_node="${NPROC_PER_NODE}" \
   --master_port="${MASTER_PORT}" \
