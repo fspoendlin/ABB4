@@ -75,6 +75,9 @@ def main(inpath):
         code = os.path.basename(d)
         pdb_files = glob(f'{d}/*.pdb')
 
+        if len(pdb_files) <= 1:
+            continue
+
         result = {'code': code}
         for cdr in ['CDRH1', 'CDRH2', 'CDRH3', 'CDRL1', 'CDRL2', 'CDRL3']:
             chain = cdr[3]

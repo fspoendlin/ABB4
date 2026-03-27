@@ -67,6 +67,8 @@ def main(pred_path, n_jobs=20):
 
     results = {}
     for dir in dirs:
+        if len(glob(f'{dir}/*.pdb')) <= 1:
+            continue
         print(f"Processing directory: {dir}")
         results[os.path.basename(dir)] = rmsd4path(dir, n_jobs=n_jobs)
 
