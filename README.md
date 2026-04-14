@@ -177,16 +177,9 @@ This processes raw antibody PDB files into the pickle format expected by the dat
 
 **Create a metadata CSV** pointing to those `.pkl` files. Template CSVs with the expected columns and format are provided in `data/`.
 
-### 2. Edit the training config
+### 2. Edit the training configs
 
-Open `abb4/configs/data.yaml` and `abb4/configs/experiment.yaml` and set the following key parameters:
-
-| Parameter | Config file | Key | Description |
-|-----------|------------|-----|-------------|
-| Training data CSV | `data.yaml` | `data.dataset.train_val_test_pdbs.csv_path` | Path to your metadata CSV |
-| Batch size | `data.yaml` | `data.module.loaders.train.single_struc_sampler.batch_size` | Per-GPU batch size; reduce if OOM |
-| Number of GPUs | `experiment.yaml` | `experiment.num_devices` | Number of GPUs for DDP training |
-| W&B logging | `experiment.yaml` | `experiment.wandb` | Set project/group or disable logging |
+Open `abb4/configs/data.yaml`, `abb4/configs/experiment.yaml` and  `abb4/configs/interpolant.yaml` and set key parameters.
 
 ### 3. Run training
 
@@ -208,13 +201,12 @@ ABB4/
 │   ├── data/           # DataModule, datasets, Interpolant, preprocessing
 │   ├── experiments/    # Entrypoints + ModelRun orchestrator
 │   ├── models/         # FlowModel, FlowModule (Lightning), losses
-│   └── analysis/       # PDB I/O utilities
-├── openfold/           # Bundled OpenFold (IPA, rigid body ops)
+│   └── analysis/       # Data abalysis utilities
+├── openfold/           # Bundled OpenFold dependency
 ├── scripts/            # Operational scripts
 ├── ckpt/               # Model checkpoints
-├── predictions/        # Inference outputs
 ├── data/               # Dataset CSVs
-└── notebooks/          # Example notebooks
+└── media/              # Images
 ```
 
 ---
